@@ -1,0 +1,25 @@
+{
+  "name": "youtubecopy",
+  "version": "1.0.0",
+  "description": "Primer intento de copiar youtube para propositos de aprendizaje",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeffersonvilla/youtubecopy.git"
+  },
+  "keywords": [
+    "Aprendizaje",
+    "javascript",
+    "copia",
+    "youtube"
+  ],
+  "author": "Jefferson Villa Cortes",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/jeffersonvilla/youtubecopy/issues"
+  },
+  "homepage": "https://github.com/jeffersonvilla/youtubecopy#readme"
+}
