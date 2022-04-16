@@ -100,13 +100,13 @@ app.get('/video', function(req, res){
 
       var range = req.headers.range;
       if (!range) {
-        range = "1000";
+        range = "500";
       }
 
       const db = mongoose.connection.db;
   
       // GridFS Collection
-      db.collection('uploads.files').findOne({filename: "bigbuck3"}, (err, video) => {
+      db.collection('uploads.files').findOne({filename: "bigbuck2"}, (err, video) => {
         if (!video) {
           res.status(404).send("No video uploaded!");
           return;
@@ -127,18 +127,19 @@ app.get('/video', function(req, res){
   
         // HTTP Status 206 for Partial Content
         res.writeHead(206, headers);
-  
-        //625a158d8fd4b73d88da6e0a (bigbuck2)
-        //625a2991edc6213e88b86155 (bigbuck3)
 
-        //aunque ponga uploads arriba openDownloadStream sigue buscado por default en fs
-        const bucket = new mongodb.GridFSBucket(db);
-        const downloadStream = bucket.openDownloadStream(mongoose.Types.ObjectId('625a2991edc6213e88b86155'), {
-          start
-        });
+        if(start < videoSize){
+
+
+            //aunque ponga uploads arriba openDownloadStream sigue buscado por default en fs
+            const bucket = new mongodb.GridFSBucket(db,{bucketName: "uploads"});
+            const downloadStream = bucket.openDownloadStream(mongoose.Types.ObjectId(video._id.toString()), {
+            start
+            });
         
         // Finally pipe video to response
-        downloadStream.pipe(res);
+            downloadStream.pipe(res);
+        }
       });
   })
 
