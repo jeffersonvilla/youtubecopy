@@ -6,9 +6,9 @@ const fs = require("fs");
 const mongoose = require('mongoose');
 //const bodyParser = require('body-parser');
 //const path = require('path');
-//const crypto = require('crypto');
-//const multer = require('multer');
-//const {GridFsStorage} = require('multer-gridfs-storage');
+const crypto = require('crypto');
+const multer = require('multer');
+const {GridFsStorage} = require('multer-gridfs-storage');
 //const Grid = require('gridfs-stream');
 //const methodOverride = require('method-override');
 
@@ -41,7 +41,7 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 })*/
 
 //Create storage engine
-/*const storage = new GridFsStorage({
+const storage = new GridFsStorage({
     url: process.env.MONGO_URI,
     file: (req, file)=>{
         return new Promise((resolve, reject)=>{
@@ -51,22 +51,22 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
                 }
                 const filename = "bigbuck2"//buf.toString('hex') + path.extname(file.originalname);
                 const fileInfo = {
-                    filename: "bigbuck2",
-                    bucketName: 'uploads'
+                    filename: "bigbuck3",
+                    bucketName: 'fs'
                 };
                 resolve(fileInfo);
             });
         });
     }
-});*/
+});
 
-//const upload = multer({storage});
+const upload = multer({storage});
 
 app.get('/',(req, res)=>{
     res.sendFile(process.cwd() + '/views/index.html');
 })
 
-app.get('/init-video', function (req, res) {
+/*app.get('/init-video', function (req, res) {
     mongodb.MongoClient.connect(process.env.MONGO_URI, function (error, client) {
       if (error) {
         res.json(error);
@@ -80,10 +80,11 @@ app.get('/init-video', function (req, res) {
       res.status(200).send("Done...");
     });
   });
+*/
 
-/*app.post('/upload', upload.single('file'), (req, res)=>{
+app.post('/upload', upload.single('file'), (req, res)=>{
     res.redirect('/');
-});*/
+});
 
 
 /*app.get('/videos', (req, res)=>{
@@ -105,13 +106,11 @@ app.get('/video', function(req, res){
       const db = mongoose.connection.db;
   
       // GridFS Collection
-      db.collection('uploads.files').findOne({filename: "bigbuck2"}, (err, video) => {
+      db.collection('uploads.files').findOne({filename: "bigbuck3"}, (err, video) => {
         if (!video) {
           res.status(404).send("No video uploaded!");
           return;
         }
-
-        console.log("video...    "+Object.keys(video)+ " ... "+ video.filename);
   
         // Create response headers
         const videoSize = video.length;
@@ -129,8 +128,12 @@ app.get('/video', function(req, res){
         // HTTP Status 206 for Partial Content
         res.writeHead(206, headers);
   
+        //625a158d8fd4b73d88da6e0a (bigbuck2)
+        //625a2991edc6213e88b86155 (bigbuck3)
+
+        //aunque ponga uploads arriba openDownloadStream sigue buscado por default en fs
         const bucket = new mongodb.GridFSBucket(db);
-        const downloadStream = bucket.openDownloadStreamByName('bigbuck', {
+        const downloadStream = bucket.openDownloadStream(mongoose.Types.ObjectId('625a2991edc6213e88b86155'), {
           start
         });
         
