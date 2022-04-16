@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 const crypto = require('crypto');
 const multer = require('multer');
 const {GridFsStorage} = require('multer-gridfs-storage');
-//const Grid = require('gridfs-stream');
+const Grid = require('gridfs-stream');
 //const methodOverride = require('method-override');
 
 const app = express();
@@ -17,7 +17,7 @@ const app = express();
 
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-
+const conn = mongoose.connection;
 
 //app.set('view engine', 'ejs');
 
@@ -32,13 +32,13 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 //app.use(methodOverride('_method'));
 
 //init gfs
-//let gfs;
+let gfs;
 
-/*conn.once('open', ()=>{
+conn.once('open', ()=>{
     //init Stream
     gfs = Grid(conn.db, mongoose.mongo);
     gfs.collection('uploads');
-})*/
+})
 
 //Create storage engine
 const storage = new GridFsStorage({
@@ -51,8 +51,8 @@ const storage = new GridFsStorage({
                 }
                 const filename = "bigbuck2"//buf.toString('hex') + path.extname(file.originalname);
                 const fileInfo = {
-                    filename: "bigbuck3",
-                    bucketName: 'fs'
+                    filename: file.originalname,
+                    bucketName: 'uploads'
                 };
                 resolve(fileInfo);
             });
@@ -87,35 +87,36 @@ app.post('/upload', upload.single('file'), (req, res)=>{
 });
 
 
-/*app.get('/videos', (req, res)=>{
+app.get('/videos', (req, res)=>{
     gfs.files.find().toArray((err, files)=>{
         if(!files || files.length === 0){
             return res.status(404).json({err: "No existen videos"});
         }
         return res.json(files);
     });
-});*/
+});
 
-app.get('/video', function(req, res){
+app.get('/video/:name', function(req, res){
 
       var range = req.headers.range;
       if (!range) {
-        range = "500";
+        range = "0-";
       }
 
       const db = mongoose.connection.db;
   
       // GridFS Collection
-      db.collection('uploads.files').findOne({filename: "bigbuck2"}, (err, video) => {
+      db.collection('uploads.files').findOne({filename: req.params.name}, (err, video) => {
         if (!video) {
           res.status(404).send("No video uploaded!");
           return;
         }
   
         // Create response headers
+        const CHUNK_SIZE = 20 ** 6;
         const videoSize = video.length;
         const start = Number(range.replace(/\D/g, ""));
-        const end = videoSize - 1;
+        const end = Math.min(start+CHUNK_SIZE, videoSize - 1);
   
         const contentLength = end - start + 1;
         const headers = {
@@ -128,7 +129,7 @@ app.get('/video', function(req, res){
         // HTTP Status 206 for Partial Content
         res.writeHead(206, headers);
 
-        if(start < videoSize){
+        if(start < videoSize ){
 
 
             //aunque ponga uploads arriba openDownloadStream sigue buscado por default en fs
