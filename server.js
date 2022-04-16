@@ -14,9 +14,10 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-//mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-//const conn = mongoose.connection;
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
+
 
 //app.set('view engine', 'ejs');
 
@@ -95,19 +96,14 @@ app.get('/init-video', function (req, res) {
 });*/
 
 app.get('/video', function(req, res){
-    mongodb.MongoClient.connect(process.env.MONGO_URI, function (error, client) {
-      if (error) {
-        res.status(500).json(error);
-        return;
-      }
-  
+
       var range = req.headers.range;
       if (!range) {
-        //res.status(400).send("Requires Range header");
         range = "1000";
       }
+
+      const db = mongoose.connection.db;
   
-      const db = client.db('myFirstDatabase');
       // GridFS Collection
       db.collection('uploads.files').findOne({filename: "bigbuck2"}, (err, video) => {
         if (!video) {
@@ -137,11 +133,10 @@ app.get('/video', function(req, res){
         const downloadStream = bucket.openDownloadStreamByName('bigbuck', {
           start
         });
-        //console.log("DownloadStream...   "+Object.keys(downloadStream)+ " ... "+downloadStream.s.cursor+" ... "+Object.keys(downloadStream.s.files));
+        
         // Finally pipe video to response
         downloadStream.pipe(res);
       });
-    });
   })
 
   /*
